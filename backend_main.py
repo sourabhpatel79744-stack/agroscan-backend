@@ -31,7 +31,7 @@ from pydantic import BaseModel
 # ----------------------------
 # Config
 # ----------------------------
-CHECKPOINT_PATH = "disease_model_best.pth"
+CHECKPOINT_PATH = "disease_model_v2.pth"
 ADVISORY_PATH = "advisory_data.json"
 HISTORY_PATH = "scan_history.json"   # simple local JSON "database" for now
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
