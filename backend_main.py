@@ -146,9 +146,18 @@ async def predict(file: UploadFile = File(...)):
     input_tensor = preprocess(pil_image).unsqueeze(0).to(DEVICE)
 
     # Run prediction
+    # Average the model's answer over 4 views: original, mirrored, zoomed, zoomed + mirrored
     with torch.no_grad():
-        outputs = model(input_tensor)
-        probs = torch.softmax(outputs, dim=1)
+        size = input_tensor.shape[-1]
+        margin = int(size * 0.10)
+        zoomed = torch.nn.functional.interpolate(
+            input_tensor[..., margin:size - margin, margin:size - margin],
+            size=(size, size), mode="bilinear", align_corners=False,
+        )
+        views = torch.cat(
+            [input_tensor, input_tensor.flip(3), zoomed, zoomed.flip(3)], dim=0
+        )
+        probs = torch.softmax(model(views), dim=1).mean(dim=0, keepdim=True)
         confidence, pred_idx = torch.max(probs, dim=1)
 
     predicted_class = CLASS_NAMES[pred_idx.item()]
